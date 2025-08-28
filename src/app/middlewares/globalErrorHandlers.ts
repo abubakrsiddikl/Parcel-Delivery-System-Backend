@@ -3,6 +3,8 @@
 import { NextFunction, Request, Response } from "express";
 import AppError from "../errorHelpers/AppError";
 import { envVars } from "../config/env";
+import { handlerZodError } from "../helpers/handleZodError";
+import { TErrorSources } from "../interfaces/error.type";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const globalErrorHandler = async (
@@ -13,8 +15,13 @@ export const globalErrorHandler = async (
 ) => {
   let statusCode = 400;
   let message = "Something Went Wrong!!";
-
-  if (err instanceof AppError) {
+  let errorSources: TErrorSources[] = [];
+  if (err.name === "ZodError") {
+    const simplifiedError = handlerZodError(err);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
+    errorSources = simplifiedError.errorSources as TErrorSources[];
+  } else if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
   } else if (err instanceof Error) {
