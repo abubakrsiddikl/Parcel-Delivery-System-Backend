@@ -16,6 +16,7 @@ export const globalErrorHandler = async (
   let statusCode = 400;
   let message = "Something Went Wrong!!";
   let errorSources: TErrorSources[] = [];
+  // zod error
   if (err.name === "ZodError") {
     const simplifiedError = handlerZodError(err);
     statusCode = simplifiedError.statusCode;

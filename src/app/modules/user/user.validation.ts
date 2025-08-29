@@ -13,7 +13,7 @@ export const createUserZodSchema = z.object({
   picture: z.url({ message: "Invalid URL" }).optional(),
   address: z.string().optional(),
   isDeleted: z.boolean().optional(),
-  isActive: z.enum(["ACTIVE", "INACTIVE", "BLOCKED", "UNBLOCKED"]).optional(),
+  isActive: z.enum(Object.values(IsActive)).optional(),
   role: z.enum(Object.values(Role)).optional(),
 });
 
@@ -30,5 +30,5 @@ export const updateUserZodSchema = z.object({
   address: z.string().optional(),
   isDeleted: z.boolean().optional(),
   isActive: z.enum(Object.values(IsActive)).optional(),
-  role: z.enum(["admin", "sender", "receiver"]).optional(),
+  role: z.enum(Object.values(Role)).optional(),
 });

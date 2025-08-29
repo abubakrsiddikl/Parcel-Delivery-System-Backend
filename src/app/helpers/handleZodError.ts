@@ -10,6 +10,7 @@ export const handlerZodError = (err: any): TGenericErrorResponse => {
       message: issue.message,
     });
   });
+  
 
   return {
     statusCode: 400,

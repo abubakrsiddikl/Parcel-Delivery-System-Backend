@@ -1,8 +1,10 @@
-import { Request, Response } from "express";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { UserServices } from "./user.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
+import { JwtPayload } from "jsonwebtoken";
 
 // Register new user
 const register = catchAsync(async (req: Request, res: Response) => {
@@ -15,41 +17,60 @@ const register = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Get own profile
-const getProfile = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserServices.getProfile("");
-  res.json(result);
-});
+// update user
+const updateUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
 
-// Get all users (Admin)
-const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserServices.getAllUsers();
-  res.json(result);
-});
+    const verifiedToken = req.user;
 
-// Get single user (Admin)
-const getUserById = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserServices.getUserById(req.params.id);
-  res.json(result);
-});
+    const payload = req.body;
+    const user = await UserServices.updateUser(
+      userId,
+      payload,
+      verifiedToken as JwtPayload
+    );
+   
 
-// Update user
-const updateUser = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserServices.updateUser(req.params.id, req.body);
-  res.json(result);
-});
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User Updated Successfully",
+      data: user,
+    });
+  }
+);
+// get all users
+const getAllUsers = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserServices.getAllUsers();
 
-// Delete user
-const deleteUser = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserServices.deleteUser(req.params.id);
-  res.json(result);
-});
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "All Users Retrieved Successfully",
+      data: result.data,
+    });
+  }
+);
+
+//  get me
+const getMe = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const result = await UserServices.getMe(decodedToken.userId);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Your Profile Retrieved Successfully",
+      data: result.data,
+    });
+  }
+);
 
 export const UserControllers = {
   register,
-  getProfile,
   getAllUsers,
-  getUserById,
+  getMe,
   updateUser,
-  deleteUser,
 };

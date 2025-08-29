@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { UserControllers } from "../user/user.controller";
 import { zodRequestValidate } from "../../middlewares/zodRequestValidate";
-import { createUserZodSchema } from "./user.validation";
+import { createUserZodSchema, updateUserZodSchema } from "./user.validation";
+import { checkAuth } from "../../middlewares/checkAuth";
+import { Role } from "./user.interface";
 
 const router = Router();
 
@@ -13,14 +15,17 @@ router.post(
 );
 
 // get all user
-router.get("/", UserControllers.getAllUsers);
-// get single user
-router.get("/:id", UserControllers.getUserById);
+router.get("/all-users", checkAuth(Role.ADMIN), UserControllers.getAllUsers);
+
+// get me
+router.get("/me", checkAuth(...Object.values(Role)), UserControllers.getMe);
 
 // update user
-router.patch("/:id", UserControllers.updateUser);
-
-// delete a user
-router.delete("/:id", UserControllers.deleteUser);
+router.patch(
+  "/update/:id",
+  zodRequestValidate(updateUserZodSchema),
+  checkAuth(...Object.values(Role)),
+  UserControllers.updateUser
+);
 
 export const UserRoutes = router;
