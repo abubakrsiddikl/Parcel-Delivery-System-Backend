@@ -5,11 +5,12 @@ import bcryptjs from "bcryptjs";
 import { envVars } from "../../config/env";
 import { User } from "./user.model";
 
-// Service functions
+// user service
 const register = async (payload: Partial<IUser>) => {
   const { email, password, ...rest } = payload;
 
   const isUserExist = await User.findOne({ email });
+  
 
   if (isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
