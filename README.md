@@ -18,9 +18,12 @@ It allows **Senders**, **Receivers**, and **Admins** to manage parcel delivery r
 
 ## **Tech Stack**
 
-**Frontend:** React.js, Redux Toolkit, RTK Query, TypeScript, Tailwind CSS  
-**Backend:** Node.js, Express, MongoDB, Mongoose, JWT, Bcrypt  
+
+**Backend** : TypeScript, Node.js, Express, MongoDB, Mongoose, JWT, Bcrypt  
 **Testing:** Postman  
+
+## API Testing
+Import the Postman collection from `/docs/parcel-delivery.postman_collection.json`
 
 ---
 
@@ -112,3 +115,5 @@ Testing
 All endpoints tested via Postman
 
 Postman collection included in the repos
+
+
