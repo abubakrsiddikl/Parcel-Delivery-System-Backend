@@ -3,7 +3,10 @@ import { checkAuth } from "../../middlewares/checkAuth";
 import { Role } from "../user/user.interface";
 import { ParcelControllers } from "./parcel.controller";
 import { zodRequestValidate } from "../../middlewares/zodRequestValidate";
-import { createParcelZodSchema } from "./parcel.validation";
+import {
+  createParcelZodSchema,
+  updateParcelZodSchema,
+} from "./parcel.validation";
 
 const router = Router();
 
@@ -15,7 +18,7 @@ router.post(
   ParcelControllers.createParcel
 );
 
-// get all parcel user by match her id can use sender and receiver only 
+// get all parcel user by match her id can use sender and receiver only
 router.get(
   "/me",
   checkAuth(...Object.values(Role)),
@@ -54,6 +57,14 @@ router.patch(
   "/confirm-delivery/:id",
   checkAuth(Role.RECEIVER),
   ParcelControllers.confirmDelivery
+);
+
+// update parcel info
+router.patch(
+  "/update/:parcelId",
+  zodRequestValidate(updateParcelZodSchema),
+  checkAuth(Role.SENDER, Role.ADMIN),
+  ParcelControllers.updateParcelInfo
 );
 
 export const ParcelRoutes = router;

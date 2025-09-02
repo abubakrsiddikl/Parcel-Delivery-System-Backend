@@ -279,8 +279,57 @@ const confirmDelivery = async (parcelId: string, decodedToken: JwtPayload) => {
 // tracking parcel
 const trackingParcel = async (trackingId: string) => {
   const parcel = await Parcel.findOne({ trackingId }).select(
-    " -_id statusLogs"
+    "-_id statusLogs.status statusLogs.location statusLogs.timestamp"
   );
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel not found !");
+  }
+
+  return parcel;
+};
+
+// Update Parcel Info
+const updateParcelInfo = async (
+  parcelId: string,
+  payload: Partial<IParcel>,
+  decodedToken: JwtPayload
+) => {
+  const parcel = await Parcel.findById(parcelId);
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
+  }
+
+  // Role-based check (optional: only sender or admin can update)
+  if (
+    decodedToken.role === "sender" &&
+    parcel.sender.toString() !== decodedToken.userId
+  ) {
+    throw new AppError(403, "You are not authorized to update this parcel");
+  }
+
+  // Allowed fields to update
+  const { type, weight, fee, estimatedDelivery, receiver } = payload;
+
+  if (type !== undefined) parcel.type = type;
+  if (weight !== undefined) parcel.weight = weight;
+  if (fee !== undefined) parcel.fee = fee;
+  if (estimatedDelivery !== undefined)
+    parcel.estimatedDelivery = estimatedDelivery;
+
+  // Receiver update (type-safe)
+  if (receiver !== undefined) {
+    const updatedReceiver: IParcelReceiver = {
+      user: receiver.user,
+      email: receiver.email,
+      name: receiver.name,
+      phone: receiver.phone,
+      address: receiver.address,
+    };
+    parcel.receiver = updatedReceiver;
+  }
+
+  // Save updated parcel
+  await parcel.save();
 
   return parcel;
 };
@@ -294,4 +343,5 @@ export const ParcelServices = {
   cancelParcel,
   confirmDelivery,
   trackingParcel,
+  updateParcelInfo,
 };

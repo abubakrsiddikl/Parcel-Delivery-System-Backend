@@ -140,6 +140,29 @@ const trackingParcel = catchAsync(
     });
   }
 );
+
+// update parcel info
+const updateParcelInfo = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { parcelId } = req.params;
+    const payload = req.body;
+    const decodedToken = req.user as JwtPayload;
+
+    const updatedParcel = await ParcelServices.updateParcelInfo(
+      parcelId,
+      payload,
+      decodedToken
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "Parcel updated successfully",
+      data: updatedParcel,
+    });
+  }
+);
+
 export const ParcelControllers = {
   createParcel,
   getMyParcels,
@@ -149,4 +172,5 @@ export const ParcelControllers = {
   cancelParcel,
   confirmDelivery,
   trackingParcel,
+  updateParcelInfo,
 };

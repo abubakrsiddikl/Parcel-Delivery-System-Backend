@@ -33,3 +33,19 @@ export const createParcelZodSchema = z.object({
   statusLogs: z.array(statusLogZodSchema).optional(),
   estimatedDelivery: z.string().optional(),
 });
+
+// update parcel zod schema
+export const updateParcelZodSchema = z.object({
+  type: z.string().optional(),
+  weight: z.number().positive().optional(),
+  fee: z.number().positive().optional(),
+  estimatedDelivery: z.string().optional(), // Date as ISO string
+  receiver: z
+    .object({
+      email: z.email().optional(),
+      name: z.string().min(1, "Receiver name is required").optional(),
+      phone: z.string().min(5).optional(),
+      address: z.string().min(3).optional(),
+    })
+    .optional(),
+});
