@@ -14,8 +14,11 @@ export const createUserZodSchema = z.object({
   address: z.string().optional(),
   isDeleted: z.boolean().optional(),
   isActive: z.enum(Object.values(IsActive)).optional(),
-  role: z.enum(Object.values(Role)).optional(),
+  role: z.enum([Role.SENDER, Role.RECEIVER], {
+    message: "Role must be either sender or receiver",
+  }),
 });
+
 
 //  User Update Validation
 export const updateUserZodSchema = z.object({

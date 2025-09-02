@@ -5,6 +5,8 @@ import bcryptjs from "bcryptjs";
 import { envVars } from "../../config/env";
 import { User } from "./user.model";
 import { JwtPayload } from "jsonwebtoken";
+import { userSearchableFields } from "./user.constant";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 // user service
 const register = async (payload: Partial<IUser>) => {
@@ -82,14 +84,24 @@ const updateUser = async (
 };
 
 // get all users
-const getAllUsers = async () => {
-  const users = await User.find({});
-  const totalUsers = await User.countDocuments();
+const getAllUsers = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(User.find(), query);
+
+  const parcels = queryBuilder
+    .search(userSearchableFields)
+    .filter()
+    .sort()
+    .paginate();
+
+  // const meta = await queryBuilder.getMeta();
+  const [data, meta] = await Promise.all([
+    parcels.build().select("-password"),
+    queryBuilder.getMeta(),
+  ]);
+
   return {
-    data: users,
-    meta: {
-      total: totalUsers,
-    },
+    data,
+    meta,
   };
 };
 

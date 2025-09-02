@@ -22,8 +22,15 @@ router.get(
   ParcelControllers.getMyParcels
 );
 
-// get parcel single parcel 
-router.get("/:parcelId", checkAuth(...Object.values(Role)),ParcelControllers.getParcelById);
+// get all parcel by only admin
+router.get("/", checkAuth(Role.ADMIN), ParcelControllers.getAllParcels);
+
+// get  single parcel
+router.get(
+  "/:parcelId",
+  checkAuth(...Object.values(Role)),
+  ParcelControllers.getParcelById
+);
 
 // tracking parcel on public
 router.get("/track/:trackingId", ParcelControllers.trackingParcel);

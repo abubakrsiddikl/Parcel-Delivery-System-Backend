@@ -39,6 +39,23 @@ const getMyParcels = catchAsync(
   }
 );
 
+// Get All Parcel By Admin
+const getAllParcels = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const result = await ParcelServices.getAllParcels(
+      query as Record<string, string>
+    );
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Tours retrieved successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  }
+);
+
 //  Get Single Parcel
 const getParcelById = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -121,6 +138,7 @@ const trackingParcel = catchAsync(
 export const ParcelControllers = {
   createParcel,
   getMyParcels,
+  getAllParcels,
   getParcelById,
   updateParcelStatus,
   cancelParcel,

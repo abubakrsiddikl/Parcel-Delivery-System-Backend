@@ -13,4 +13,11 @@ export const setAuthCookie = (res: Response, tokenInfo: AuthTokens) => {
       sameSite: "none",
     });
   }
+  if (tokenInfo.refreshToken) {
+    res.cookie("refreshToken", tokenInfo.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+  }
 };

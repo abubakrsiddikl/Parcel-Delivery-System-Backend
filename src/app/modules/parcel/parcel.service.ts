@@ -7,6 +7,8 @@ import { Role } from "../user/user.interface";
 import { JwtPayload } from "jsonwebtoken";
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
+import { parcelSearchableFields } from "./parcel.constant";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 //  Create Parcel
 const createParcel = async (userId: string, payload: Partial<IParcel>) => {
@@ -62,6 +64,27 @@ const getMyParcels = async (userId: string) => {
   return { data: parcels };
 };
 
+// Get All Parcels by Admin
+const getAllParcels = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(Parcel.find(), query);
+
+  const parcels = queryBuilder
+    .search(parcelSearchableFields)
+    .filter()
+    .sort()
+    .paginate();
+
+  // const meta = await queryBuilder.getMeta();
+  const [data, meta] = await Promise.all([
+    parcels.build(),
+    queryBuilder.getMeta(),
+  ]);
+
+  return {
+    data,
+    meta,
+  };
+};
 // Get Parcel By ID
 const getParcelById = async (parcelId: string, decodedToken: JwtPayload) => {
   const parcel = await Parcel.findById(parcelId).populate(
@@ -229,6 +252,7 @@ const trackingParcel = async (trackingId: string) => {
 export const ParcelServices = {
   createParcel,
   getMyParcels,
+  getAllParcels,
   getParcelById,
   updateParcelStatus,
   cancelParcel,

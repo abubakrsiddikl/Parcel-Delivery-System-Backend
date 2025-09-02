@@ -8,6 +8,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 import { createUserToken } from "../../utils/userTokens";
 import { setAuthCookie } from "../../utils/setCookie";
+import { AuthServices } from "./auth.service";
 
 // login
 const credentialLogin = catchAsync(
@@ -30,7 +31,7 @@ const credentialLogin = catchAsync(
         message: "User Logged In Successfully",
         data: {
           accessToken: userTokens.accessToken,
-          //   refreshToken: userTokens.refreshToken,
+          refreshToken: userTokens.refreshToken,
           user: rest,
         },
       });
@@ -38,6 +39,48 @@ const credentialLogin = catchAsync(
   }
 );
 
+// refresh token
+const getNewAccessToken = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "No refresh token received from cookies"
+      );
+    }
+    const tokenInfo = await AuthServices.getNewAccessToken(
+      refreshToken as string
+    );
+
+    setAuthCookie(res, tokenInfo);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "New Access Token Retrieved Successfully",
+      data: tokenInfo,
+    });
+  }
+);
+
+// forgot password
+const forgotPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+
+    await AuthServices.forgotPassword(email);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Email Sent Successfully",
+      data: null,
+    });
+  }
+);
+
+// logout
 const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     res.clearCookie("accessToken", {
@@ -59,7 +102,9 @@ const logout = catchAsync(
     });
   }
 );
-export const AuthServices = {
+export const AuthControllers = {
   credentialLogin,
+  getNewAccessToken,
+  forgotPassword,
   logout,
 };
