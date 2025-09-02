@@ -15,7 +15,7 @@ router.post(
   ParcelControllers.createParcel
 );
 
-// get parcel user by id
+// get all parcel user by match her id can use sender and receiver only 
 router.get(
   "/me",
   checkAuth(...Object.values(Role)),

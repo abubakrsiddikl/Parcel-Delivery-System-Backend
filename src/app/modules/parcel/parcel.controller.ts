@@ -27,14 +27,19 @@ const createParcel = catchAsync(
 //  Get My Parcels
 const getMyParcels = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
     const decodedToken = req.user as JwtPayload;
-    const result = await ParcelServices.getMyParcels(decodedToken.userId);
+    const result = await ParcelServices.getMyParcels(
+      decodedToken,
+      query as Record<string, string>
+    );
 
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
       message: "Parcels retrieved successfully",
       data: result.data,
+      meta: result.meta,
     });
   }
 );

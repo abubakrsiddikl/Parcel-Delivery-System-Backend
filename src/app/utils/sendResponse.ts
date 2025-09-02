@@ -13,6 +13,7 @@ interface TResponse<T> {
   message: string;
   data: T;
   meta?: TMeta;
+  type?: string;
 }
 
 export const sendResponse = <T>(res: Response, data: TResponse<T>) => {
@@ -22,5 +23,6 @@ export const sendResponse = <T>(res: Response, data: TResponse<T>) => {
     message: data.message,
     meta: data.meta,
     data: data.data,
+    type: data.type,
   });
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from "mongoose";
 import { IParcel, IParcelReceiver, PARCEL_STATUS } from "./parcel.interface";
 import { Parcel } from "./parcel.model";
@@ -59,9 +60,44 @@ const createParcel = async (userId: string, payload: Partial<IParcel>) => {
 };
 
 //  Get My Parcels
-const getMyParcels = async (userId: string) => {
-  const parcels = await Parcel.find({ sender: userId }).populate("receiver");
-  return { data: parcels };
+const getMyParcels = async (
+  decodedToken: JwtPayload,
+  query: Record<string, string>
+) => {
+  const userId = decodedToken?.userId;
+  let condition = {};
+  let userType: Role;
+
+  if (decodedToken?.role === Role.SENDER) {
+    condition = { sender: userId };
+    userType = Role.SENDER;
+  } else if (decodedToken?.role === Role.RECEIVER) {
+    condition = { "receiver.user": userId };
+    userType = Role.RECEIVER;
+  } else {
+    throw new AppError(403, "Not authorized to view parcels");
+  }
+
+  // query builder
+  const queryBuilder = new QueryBuilder(Parcel.find(condition), query);
+
+  const parcels = queryBuilder
+    .search(parcelSearchableFields)
+    .filter()
+    .sort()
+    .paginate();
+
+  const [rawData, meta] = await Promise.all([
+    parcels.build().populate("sender", "name email address phone"),
+    queryBuilder.getMeta(),
+  ]);
+
+  //  Add "userType" only for sender/receiver
+  const data = rawData.map((parcel: any) =>
+    userType ? { ...parcel.toObject(), userType } : parcel.toObject()
+  );
+
+  return { data, meta };
 };
 
 // Get All Parcels by Admin
