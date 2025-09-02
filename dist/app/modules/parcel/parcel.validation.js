@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createParcelZodSchema = void 0;
+exports.updateParcelZodSchema = exports.createParcelZodSchema = void 0;
 const zod_1 = require("zod");
 const parcel_interface_1 = require("./parcel.interface");
 // Receiver schema
@@ -32,4 +32,19 @@ exports.createParcelZodSchema = zod_1.z.object({
         .default(parcel_interface_1.PARCEL_STATUS.REQUESTED),
     statusLogs: zod_1.z.array(statusLogZodSchema).optional(),
     estimatedDelivery: zod_1.z.string().optional(),
+});
+// update parcel zod schema
+exports.updateParcelZodSchema = zod_1.z.object({
+    type: zod_1.z.string().optional(),
+    weight: zod_1.z.number().positive().optional(),
+    fee: zod_1.z.number().positive().optional(),
+    estimatedDelivery: zod_1.z.string().optional(), // Date as ISO string
+    receiver: zod_1.z
+        .object({
+        email: zod_1.z.email().optional(),
+        name: zod_1.z.string().min(1, "Receiver name is required").optional(),
+        phone: zod_1.z.string().min(5).optional(),
+        address: zod_1.z.string().min(3).optional(),
+    })
+        .optional(),
 });

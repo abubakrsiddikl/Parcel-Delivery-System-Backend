@@ -235,6 +235,42 @@ const trackingParcel = (trackingId) => __awaiter(void 0, void 0, void 0, functio
     }
     return parcel;
 });
+// Update Parcel Info
+const updateParcelInfo = (parcelId, payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
+    const parcel = yield parcel_model_1.Parcel.findById(parcelId);
+    if (!parcel) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Parcel not found");
+    }
+    // Role-based check (optional: only sender or admin can update)
+    if (decodedToken.role === "sender" &&
+        parcel.sender.toString() !== decodedToken.userId) {
+        throw new AppError_1.default(403, "You are not authorized to update this parcel");
+    }
+    // Allowed fields to update
+    const { type, weight, fee, estimatedDelivery, receiver } = payload;
+    if (type !== undefined)
+        parcel.type = type;
+    if (weight !== undefined)
+        parcel.weight = weight;
+    if (fee !== undefined)
+        parcel.fee = fee;
+    if (estimatedDelivery !== undefined)
+        parcel.estimatedDelivery = estimatedDelivery;
+    // Receiver update (type-safe)
+    if (receiver !== undefined) {
+        const updatedReceiver = {
+            user: receiver.user,
+            email: receiver.email,
+            name: receiver.name,
+            phone: receiver.phone,
+            address: receiver.address,
+        };
+        parcel.receiver = updatedReceiver;
+    }
+    // Save updated parcel
+    yield parcel.save();
+    return parcel;
+});
 exports.ParcelServices = {
     createParcel,
     getMyParcels,
@@ -244,4 +280,5 @@ exports.ParcelServices = {
     cancelParcel,
     confirmDelivery,
     trackingParcel,
+    updateParcelInfo,
 };

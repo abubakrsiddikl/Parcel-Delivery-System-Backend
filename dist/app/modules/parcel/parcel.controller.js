@@ -113,6 +113,19 @@ const trackingParcel = (0, catchAsync_1.catchAsync)((req, res, next) => __awaite
         data: trackingInfo,
     });
 }));
+// update parcel info
+const updateParcelInfo = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { parcelId } = req.params;
+    const payload = req.body;
+    const decodedToken = req.user;
+    const updatedParcel = yield parcel_service_1.ParcelServices.updateParcelInfo(parcelId, payload, decodedToken);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: 200,
+        message: "Parcel updated successfully",
+        data: updatedParcel,
+    });
+}));
 exports.ParcelControllers = {
     createParcel,
     getMyParcels,
@@ -122,4 +135,5 @@ exports.ParcelControllers = {
     cancelParcel,
     confirmDelivery,
     trackingParcel,
+    updateParcelInfo,
 };

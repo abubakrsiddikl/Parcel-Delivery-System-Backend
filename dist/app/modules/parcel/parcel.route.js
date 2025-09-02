@@ -10,7 +10,7 @@ const parcel_validation_1 = require("./parcel.validation");
 const router = (0, express_1.Router)();
 // create parcel by sender and admin
 router.post("/create", (0, zodRequestValidate_1.zodRequestValidate)(parcel_validation_1.createParcelZodSchema), (0, checkAuth_1.checkAuth)(user_interface_1.Role.SENDER, user_interface_1.Role.ADMIN), parcel_controller_1.ParcelControllers.createParcel);
-// get all parcel user by match her id can use sender and receiver only 
+// get all parcel user by match her id can use sender and receiver only
 router.get("/me", (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), parcel_controller_1.ParcelControllers.getMyParcels);
 // get all parcel by only admin
 router.get("/", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN), parcel_controller_1.ParcelControllers.getAllParcels);
@@ -24,4 +24,6 @@ router.patch("/:id/status", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADM
 router.patch("/cancel/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.SENDER), parcel_controller_1.ParcelControllers.cancelParcel);
 // parcel status cancel only sender
 router.patch("/confirm-delivery/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.RECEIVER), parcel_controller_1.ParcelControllers.confirmDelivery);
+// update parcel info
+router.patch("/update/:parcelId", (0, zodRequestValidate_1.zodRequestValidate)(parcel_validation_1.updateParcelZodSchema), (0, checkAuth_1.checkAuth)(user_interface_1.Role.SENDER, user_interface_1.Role.ADMIN), parcel_controller_1.ParcelControllers.updateParcelInfo);
 exports.ParcelRoutes = router;
