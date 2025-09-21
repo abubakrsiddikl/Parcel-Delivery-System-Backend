@@ -1,0 +1,31 @@
+// src/modules/parcel/constants/transitions.constants.ts
+import { Role } from "../../user/user.interface"; // adjust path as needed
+import { PARCEL_STATUS } from "../parcel.interface";
+
+
+// role  (target) allowed
+export const statusTransitions: Record<Role, PARCEL_STATUS[]> = {
+  [Role.ADMIN]: [
+    PARCEL_STATUS.APPROVED,
+    PARCEL_STATUS.DISPATCHED,
+    PARCEL_STATUS.IN_TRANSIT,
+    PARCEL_STATUS.DELIVERED,
+    PARCEL_STATUS.CANCELLED,
+    PARCEL_STATUS.RETURNED,
+    PARCEL_STATUS.HELD,
+  ],
+  [Role.SENDER]: [PARCEL_STATUS.CANCELLED], // sender just cancelled
+  [Role.RECEIVER]: [PARCEL_STATUS.DELIVERED, PARCEL_STATUS.RETURNED],
+};
+
+// strict sequence flow: current -> allowed next's
+export const statusFlow: Record<PARCEL_STATUS, PARCEL_STATUS[]> = {
+  [PARCEL_STATUS.REQUESTED]: [PARCEL_STATUS.APPROVED, PARCEL_STATUS.CANCELLED],
+  [PARCEL_STATUS.APPROVED]: [PARCEL_STATUS.DISPATCHED, PARCEL_STATUS.CANCELLED],
+  [PARCEL_STATUS.DISPATCHED]: [PARCEL_STATUS.IN_TRANSIT],
+  [PARCEL_STATUS.IN_TRANSIT]: [PARCEL_STATUS.DELIVERED, PARCEL_STATUS.RETURNED],
+  [PARCEL_STATUS.DELIVERED]: [],
+  [PARCEL_STATUS.CANCELLED]: [],
+  [PARCEL_STATUS.RETURNED]: [],
+  [PARCEL_STATUS.HELD]: [PARCEL_STATUS.APPROVED, PARCEL_STATUS.CANCELLED],
+};

@@ -10,6 +10,7 @@ import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
 import { parcelSearchableFields } from "./parcel.constant";
 import { QueryBuilder } from "../../utils/QueryBuilder";
+import { statusFlow, statusNotes, statusTransitions } from "./constants";
 
 //  Create Parcel
 const createParcel = async (userId: string, payload: Partial<IParcel>) => {
@@ -149,44 +150,6 @@ const getParcelById = async (parcelId: string, decodedToken: JwtPayload) => {
 };
 
 // update status by admin
-// Allowed transitions per role
-const statusTransitions: Record<Role, PARCEL_STATUS[]> = {
-  [Role.ADMIN]: [
-    PARCEL_STATUS.APPROVED,
-    PARCEL_STATUS.DISPATCHED,
-    PARCEL_STATUS.IN_TRANSIT,
-    PARCEL_STATUS.DELIVERED,
-    PARCEL_STATUS.CANCELLED,
-    PARCEL_STATUS.RETURNED,
-    PARCEL_STATUS.HELD,
-  ],
-  [Role.SENDER]: [PARCEL_STATUS.CANCELLED], // only before dispatched
-  [Role.RECEIVER]: [PARCEL_STATUS.DELIVERED, PARCEL_STATUS.RETURNED], // confirm delivery or return
-};
-
-// Allowed transitions flow (strict sequence)
-const statusFlow: Record<PARCEL_STATUS, PARCEL_STATUS[]> = {
-  [PARCEL_STATUS.REQUESTED]: [PARCEL_STATUS.APPROVED, PARCEL_STATUS.CANCELLED],
-  [PARCEL_STATUS.APPROVED]: [PARCEL_STATUS.DISPATCHED, PARCEL_STATUS.CANCELLED],
-  [PARCEL_STATUS.DISPATCHED]: [PARCEL_STATUS.IN_TRANSIT],
-  [PARCEL_STATUS.IN_TRANSIT]: [PARCEL_STATUS.DELIVERED, PARCEL_STATUS.RETURNED],
-  [PARCEL_STATUS.DELIVERED]: [], // final state
-  [PARCEL_STATUS.CANCELLED]: [], // final state
-  [PARCEL_STATUS.RETURNED]: [], // final state
-  [PARCEL_STATUS.HELD]: [PARCEL_STATUS.APPROVED, PARCEL_STATUS.CANCELLED],
-};
-
-// Note messages for status update
-const statusNotes: Record<PARCEL_STATUS, string> = {
-  [PARCEL_STATUS.REQUESTED]: "Parcel request submitted",
-  [PARCEL_STATUS.APPROVED]: "Parcel approved for processing",
-  [PARCEL_STATUS.DISPATCHED]: "Parcel dispatched to courier",
-  [PARCEL_STATUS.IN_TRANSIT]: "Parcel is in transit",
-  [PARCEL_STATUS.DELIVERED]: "Parcel successfully delivered",
-  [PARCEL_STATUS.CANCELLED]: "Parcel has been cancelled",
-  [PARCEL_STATUS.RETURNED]: "Parcel returned to sender",
-  [PARCEL_STATUS.HELD]: "Parcel is on hold for review",
-};
 
 export const updateParcelStatus = async (
   parcelId: string,
