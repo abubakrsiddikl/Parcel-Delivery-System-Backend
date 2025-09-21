@@ -41,7 +41,7 @@ router.get("/track/:trackingId", ParcelControllers.trackingParcel);
 // update parcel status by admin
 router.patch(
   "/:id/status",
-  checkAuth(Role.ADMIN),
+  checkAuth(Role.ADMIN, Role.SENDER, Role.RECEIVER),
   ParcelControllers.updateParcelStatus
 );
 

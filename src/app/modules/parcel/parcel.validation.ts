@@ -23,7 +23,6 @@ const statusLogZodSchema = z.object({
 export const createParcelZodSchema = z.object({
   type: z.string().min(1, "Parcel type is required"),
   weight: z.number().positive("Weight must be greater than 0"),
-  fee: z.number().nonnegative("Fee must be 0 or positive"),
   deliveryAddress: z.string().min(1, "Sender ID is required"),
   sender: z.string().min(1, "Delivery Address is required").optional(),
   receiver: receiverZodSchema,

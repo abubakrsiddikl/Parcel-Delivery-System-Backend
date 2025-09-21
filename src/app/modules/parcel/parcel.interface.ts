@@ -31,7 +31,7 @@ export interface IParcel {
   trackingId: string; // TRK-20250829-000001
   type: string; // Document, Box, Fragile etc.
   weight: number; // in KG
-  fee: number; // auto calculate or manual
+  deliveryCharge: number; // auto calculate or manual
   deliveryAddress: string;
   sender: Types.ObjectId;
   receiver: IParcelReceiver;

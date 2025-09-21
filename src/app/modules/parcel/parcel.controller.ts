@@ -54,7 +54,7 @@ const getAllParcels = catchAsync(
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: "Tours retrieved successfully",
+      message: "Parcels retrieved successfully",
       data: result.data,
       meta: result.meta,
     });

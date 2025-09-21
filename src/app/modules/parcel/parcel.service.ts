@@ -55,7 +55,6 @@ const createParcel = async (userId: string, payload: Partial<IParcel>) => {
     receiver: receiverInfo,
     ...restPayload,
   });
-
   return parcel;
 };
 
@@ -112,7 +111,7 @@ const getAllParcels = async (query: Record<string, string>) => {
 
   // const meta = await queryBuilder.getMeta();
   const [data, meta] = await Promise.all([
-    parcels.build(),
+    parcels.build().populate("sender", "name email phone address"),
     queryBuilder.getMeta(),
   ]);
 
@@ -123,7 +122,7 @@ const getAllParcels = async (query: Record<string, string>) => {
 };
 // Get Parcel By ID
 const getParcelById = async (parcelId: string, decodedToken: JwtPayload) => {
-  const parcel = await Parcel.findById(parcelId).populate(
+  const parcel = await Parcel.findOne({ trackingId: parcelId }).populate(
     "sender",
     "name email phone address"
   );
@@ -150,38 +149,94 @@ const getParcelById = async (parcelId: string, decodedToken: JwtPayload) => {
 };
 
 // update status by admin
-const updateParcelStatus = async (
+// Allowed transitions per role
+const statusTransitions: Record<Role, PARCEL_STATUS[]> = {
+  [Role.ADMIN]: [
+    PARCEL_STATUS.APPROVED,
+    PARCEL_STATUS.DISPATCHED,
+    PARCEL_STATUS.IN_TRANSIT,
+    PARCEL_STATUS.DELIVERED,
+    PARCEL_STATUS.CANCELLED,
+    PARCEL_STATUS.RETURNED,
+    PARCEL_STATUS.HELD,
+  ],
+  [Role.SENDER]: [PARCEL_STATUS.CANCELLED], // only before dispatched
+  [Role.RECEIVER]: [PARCEL_STATUS.DELIVERED, PARCEL_STATUS.RETURNED], // confirm delivery or return
+};
+
+// Allowed transitions flow (strict sequence)
+const statusFlow: Record<PARCEL_STATUS, PARCEL_STATUS[]> = {
+  [PARCEL_STATUS.REQUESTED]: [PARCEL_STATUS.APPROVED, PARCEL_STATUS.CANCELLED],
+  [PARCEL_STATUS.APPROVED]: [PARCEL_STATUS.DISPATCHED, PARCEL_STATUS.CANCELLED],
+  [PARCEL_STATUS.DISPATCHED]: [PARCEL_STATUS.IN_TRANSIT],
+  [PARCEL_STATUS.IN_TRANSIT]: [PARCEL_STATUS.DELIVERED, PARCEL_STATUS.RETURNED],
+  [PARCEL_STATUS.DELIVERED]: [], // final state
+  [PARCEL_STATUS.CANCELLED]: [], // final state
+  [PARCEL_STATUS.RETURNED]: [], // final state
+  [PARCEL_STATUS.HELD]: [PARCEL_STATUS.APPROVED, PARCEL_STATUS.CANCELLED],
+};
+
+// Note messages for status update
+const statusNotes: Record<PARCEL_STATUS, string> = {
+  [PARCEL_STATUS.REQUESTED]: "Parcel request submitted",
+  [PARCEL_STATUS.APPROVED]: "Parcel approved for processing",
+  [PARCEL_STATUS.DISPATCHED]: "Parcel dispatched to courier",
+  [PARCEL_STATUS.IN_TRANSIT]: "Parcel is in transit",
+  [PARCEL_STATUS.DELIVERED]: "Parcel successfully delivered",
+  [PARCEL_STATUS.CANCELLED]: "Parcel has been cancelled",
+  [PARCEL_STATUS.RETURNED]: "Parcel returned to sender",
+  [PARCEL_STATUS.HELD]: "Parcel is on hold for review",
+};
+
+export const updateParcelStatus = async (
   parcelId: string,
   newStatus: PARCEL_STATUS,
-  decodedToken: JwtPayload
+  decodedToken: JwtPayload,
+  location: string
 ) => {
   const role = decodedToken?.role;
   const userId = decodedToken?.userId;
+
   const parcel = await Parcel.findById(parcelId);
   if (!parcel) throw new AppError(404, "Parcel not found");
 
-  // Validation rules
-  if (role === Role.SENDER && newStatus === PARCEL_STATUS.DELIVERED) {
-    throw new AppError(403, "Sender cannot mark parcel as delivered");
+  const currentStatus = parcel.currentStatus;
+
+  //  Prevent duplicate status
+  if (currentStatus === newStatus) {
+    throw new AppError(400, `Parcel is already in ${newStatus} status`);
   }
-  if (role === Role.RECEIVER && newStatus !== PARCEL_STATUS.DELIVERED) {
-    throw new AppError(403, "Receiver can only confirm delivery");
+
+  //  Check allowed role transitions
+  if (!statusTransitions[role as Role]?.includes(newStatus)) {
+    throw new AppError(403, `${role} cannot update to ${newStatus}`);
   }
+
+  //  Check flow sequence
+  if (!statusFlow[currentStatus]?.includes(newStatus)) {
+    throw new AppError(
+      400,
+      `Invalid transition: cannot move from ${currentStatus} to ${newStatus}`
+    );
+  }
+
+  // Sender can't cancel after dispatched
   if (
     role === Role.SENDER &&
-    parcel.currentStatus === PARCEL_STATUS.DISPATCHED
+    currentStatus === PARCEL_STATUS.DISPATCHED &&
+    newStatus === PARCEL_STATUS.CANCELLED
   ) {
-    throw new AppError(403, "Sender cannot cancel/discard once dispatched");
+    throw new AppError(403, "Sender cannot cancel once dispatched");
   }
 
-  //  Status transition
+  //  Update status
   parcel.currentStatus = newStatus;
 
-  //  Push status log
+  // Add log
   parcel.statusLogs.push({
     status: newStatus,
-    location: "System update", // later dynamically set
-    note: `${role} updated status to ${newStatus}`,
+    location,
+    note: statusNotes[newStatus] || `${role} updated status to ${newStatus}`,
     updatedBy: new Types.ObjectId(userId),
     timestamp: new Date(),
   });
@@ -279,7 +334,7 @@ const confirmDelivery = async (parcelId: string, decodedToken: JwtPayload) => {
 // tracking parcel
 const trackingParcel = async (trackingId: string) => {
   const parcel = await Parcel.findOne({ trackingId }).select(
-    "-_id statusLogs.status statusLogs.location statusLogs.timestamp"
+    "-_id statusLogs.status statusLogs.location statusLogs.note statusLogs.timestamp"
   );
   if (!parcel) {
     throw new AppError(httpStatus.NOT_FOUND, "Parcel not found !");
@@ -308,11 +363,11 @@ const updateParcelInfo = async (
   }
 
   // Allowed fields to update
-  const { type, weight, fee, estimatedDelivery, receiver } = payload;
+  const { type, weight, deliveryCharge, estimatedDelivery, receiver } = payload;
 
   if (type !== undefined) parcel.type = type;
   if (weight !== undefined) parcel.weight = weight;
-  if (fee !== undefined) parcel.fee = fee;
+  if (deliveryCharge !== undefined) parcel.deliveryCharge = deliveryCharge;
   if (estimatedDelivery !== undefined)
     parcel.estimatedDelivery = estimatedDelivery;
 

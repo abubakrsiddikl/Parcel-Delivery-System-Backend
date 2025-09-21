@@ -46,9 +46,9 @@ const parcelSchema = new Schema<IParcel>(
       type: Number,
       required: true,
     },
-    fee: {
+    deliveryCharge: {
       type: Number,
-      required: true,
+      default: 120
     },
     deliveryAddress: {
       type: String,
