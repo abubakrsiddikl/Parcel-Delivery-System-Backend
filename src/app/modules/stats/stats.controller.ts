@@ -19,6 +19,19 @@ const getDashboardStats = catchAsync(
   }
 );
 
+const getChartStats = catchAsync(async (req: Request, res: Response) => {
+  const decodedToken = req.user as JwtPayload;
+  const result = await StatsServices.getChartStats(decodedToken);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Chart stats fetched successfully",
+    data: result,
+  });
+});
+
 export const StatsControllers = {
   getDashboardStats,
+  getChartStats,
 };

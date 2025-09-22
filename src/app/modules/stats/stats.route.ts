@@ -13,4 +13,11 @@ router.get(
   StatsControllers.getDashboardStats
 );
 
+// get dashboard chart stats
+router.get(
+  "/charts",
+  checkAuth(...Object.values(Role)),
+  StatsControllers.getChartStats
+);
+
 export const StatsRoutes = router;
