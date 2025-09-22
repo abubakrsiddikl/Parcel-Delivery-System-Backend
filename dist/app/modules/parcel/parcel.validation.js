@@ -23,7 +23,6 @@ const statusLogZodSchema = zod_1.z.object({
 exports.createParcelZodSchema = zod_1.z.object({
     type: zod_1.z.string().min(1, "Parcel type is required"),
     weight: zod_1.z.number().positive("Weight must be greater than 0"),
-    fee: zod_1.z.number().nonnegative("Fee must be 0 or positive"),
     deliveryAddress: zod_1.z.string().min(1, "Sender ID is required"),
     sender: zod_1.z.string().min(1, "Delivery Address is required").optional(),
     receiver: receiverZodSchema,

@@ -19,7 +19,7 @@ router.get("/:parcelId", (0, checkAuth_1.checkAuth)(...Object.values(user_interf
 // tracking parcel on public
 router.get("/track/:trackingId", parcel_controller_1.ParcelControllers.trackingParcel);
 // update parcel status by admin
-router.patch("/:id/status", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN), parcel_controller_1.ParcelControllers.updateParcelStatus);
+router.patch("/:id/status", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SENDER, user_interface_1.Role.RECEIVER), parcel_controller_1.ParcelControllers.updateParcelStatus);
 // parcel status cancel only sender
 router.patch("/cancel/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.SENDER), parcel_controller_1.ParcelControllers.cancelParcel);
 // parcel status cancel only sender

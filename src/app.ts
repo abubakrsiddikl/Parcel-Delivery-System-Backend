@@ -6,11 +6,16 @@ import expressSession from "express-session";
 import { envVars } from "./app/config/env";
 import passport from "passport";
 import cookieParser from "cookie-parser";
-import cors from 'cors'
+import cors from "cors";
 import "./app/config/passport";
 
 const app = express();
-
+app.use(
+  cors({
+    origin: envVars.FRONTEND_URL,
+    credentials: true,
+  })
+);
 app.use(
   expressSession({
     secret: envVars.EXPRESS_SESSION_SECRET,
@@ -24,12 +29,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.set("trust proxy", 1);
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  cors({
-    origin: envVars.FRONTEND_URL,
-    credentials: true,
-  })
-);
 app.use("/api/v1", router);
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "welcome to the server" });

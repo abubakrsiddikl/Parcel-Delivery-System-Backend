@@ -155,7 +155,7 @@ export const updateParcelStatus = async (
   parcelId: string,
   newStatus: PARCEL_STATUS,
   decodedToken: JwtPayload,
-  location: string
+  location?: string
 ) => {
   const role = decodedToken?.role;
   const userId = decodedToken?.userId;

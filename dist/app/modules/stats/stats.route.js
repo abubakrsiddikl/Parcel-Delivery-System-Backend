@@ -8,4 +8,6 @@ const stats_controller_1 = require("./stats.controller");
 const router = (0, express_1.Router)();
 // Get Dashboard stats
 router.get("/", (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), stats_controller_1.StatsControllers.getDashboardStats);
+// get dashboard chart stats
+router.get("/charts", (0, checkAuth_1.checkAuth)(...Object.values(user_interface_1.Role)), stats_controller_1.StatsControllers.getChartStats);
 exports.StatsRoutes = router;

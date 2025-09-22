@@ -23,6 +23,17 @@ const getDashboardStats = (0, catchAsync_1.catchAsync)((req, res, next) => __awa
         data: stats,
     });
 }));
+const getChartStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    const result = yield stats_service_1.StatsServices.getChartStats(decodedToken);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Chart stats fetched successfully",
+        data: result,
+    });
+}));
 exports.StatsControllers = {
     getDashboardStats,
+    getChartStats,
 };
